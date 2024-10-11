@@ -30,16 +30,14 @@ app.use(express.urlencoded({ extended: true }));
 
 async function main() {
     // Ingest the OpenID Connect configuration from the discovery document endpoint
-    const issuer = await Issuer.discover(
-        "https://apis.roblox.com/oauth/.well-known/openid-configuration"
-    );
+    const issuer = await Issuer.discover("https://apis.roblox.com/oauth/.well-known/openid-configuration");
 
     const client = new issuer.Client({
         client_id: clientId,
         client_secret: clientSecret,
         redirect_uris: [`${baseURL}/oauth/callback`],
         response_types: ["code"],
-        scope: "openid profile universe-messaging-service:publish",
+        scope: "openid profile",
         id_token_signed_response_alg: "ES256",
     });
 
@@ -95,7 +93,9 @@ async function main() {
     });
 
     app.get("/oauth/callback", async (req, res) => {
+        console.log(1)
         const params = client.callbackParams(req);
+        console.log(2)
         const tokenSet = await client.callback(
             `${baseURL}/oauth/callback`,
             params,
@@ -104,13 +104,14 @@ async function main() {
                 nonce: req.signedCookies.nonce,
             }
         );
-
+        console.log(3)
         // Store user details in the userData and session tokens in their respective cookies
         res
             .cookie("tokenSet", tokenSet, secureCookieConfig)
             .clearCookie("state")
             .clearCookie("nonce")
             .redirect("/home");
+        console.log(4)
     });
 
     app.get("/home", checkLoggedIn, (req, res) => {

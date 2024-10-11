@@ -5,20 +5,17 @@
  * For client-side code, PKCE protocol should be used instead of a client secret
  * in order to avoid sharing the client secret publicly.
  */
-
-import express from "express";
-import { Issuer, TokenSet, custom, generators } from "openid-client";
-import { getHomeHtml } from "./getHomeHtml.js";
-import cookieParser from "cookie-parser";
-
+import { getHomeHtml } from "./getHomeHtml.ts";
+import { express, cookie_parser as cookieParser, openid_client } from "./src/Dependencies.ts";
+const { Issuer, TokenSet, custom, generators } = openid_client
 const app = express();
-const port = process.env.ROBLOX_PORT || 3000;
-const clientId = process.env.ROBLOX_CLIENT_ID;
-const clientSecret = process.env.ROBLOX_CLIENT_SECRET;
-
+const port = Deno.env.get('PORT') || 3000;
+const clientId = Deno.env.get('ROBLOX_CLIENT_ID')!;
+const clientSecret = Deno.env.get('ROBLOX_CLIENT_SECRET')!;
+const baseURL = Deno.env.get('BASEURL')
 // Generating a new secret at runtime invalidates existing cookies if the server restarts.
 // Set your own constant cookie secret if you want to keep them alive despite server restarting.
-const cookieSecret = process.env.COOKIE_SECRET || generators.random();
+const cookieSecret = Deno.env.get('COOKIE_SECRET') || generators.random();
 const secureCookieConfig = {
     secure: true,
     httpOnly: true,
@@ -40,7 +37,7 @@ async function main() {
     const client = new issuer.Client({
         client_id: clientId,
         client_secret: clientSecret,
-        redirect_uris: [`http://localhost:${port}/oauth/callback`],
+        redirect_uris: [`${baseURL}/oauth/callback`],
         response_types: ["code"],
         scope: "openid profile universe-messaging-service:publish",
         id_token_signed_response_alg: "ES256",
@@ -100,7 +97,7 @@ async function main() {
     app.get("/oauth/callback", async (req, res) => {
         const params = client.callbackParams(req);
         const tokenSet = await client.callback(
-            `http://localhost:${port}/oauth/callback`,
+            `${baseURL}/oauth/callback`,
             params,
             {
                 state: req.signedCookies.state,

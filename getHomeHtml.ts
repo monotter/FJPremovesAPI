@@ -4,7 +4,7 @@
  * this sample uses a function to keep it as simple as possible for ease of understanding.
  */
 
-export function getHomeHtml(userData) {
+export function getHomeHtml(userData: { picture: string, nickname: string, preferred_username: string, sub: string, profile: string }) {
     return `
         <!DOCTYPE html>
         <html>

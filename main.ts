@@ -95,7 +95,7 @@ async function main() {
     app.get("/oauth/callback", async (req, res) => {
         console.log(1)
         const params = client.callbackParams(req);
-        console.log(2)
+        console.log(2, req.signedCookies)
         const tokenSet = await client.callback(
             `${baseURL}/oauth/callback`,
             params,
